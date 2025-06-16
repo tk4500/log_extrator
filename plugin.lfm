@@ -15,6 +15,7 @@
         <!-- 
             O onClick agora chama a função que está dentro do nosso módulo de lógica.
         -->
+        <button align="bottom" text="Exportar XML" onClick="exportador_logic.exportarxml(Firecast.getMesaDe(sheet))" height="40" />
         <button align="bottom" text="Selecionar Pasta e Exportar" onClick="exportador_logic.iniciarExportacao(Firecast.getMesaDe(sheet))" height="40" />
     </layout>
 </form>

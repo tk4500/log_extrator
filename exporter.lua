@@ -19,14 +19,15 @@ local function loadPersonagem(personagem)
             end
             txt = txt .. "\n";
         end
-        return "Log: " ..(personagem.name or "Desconhecido") .. "\n\n" .. txt.. "\n\n========================================\n\n";
+        return "Log: " ..
+            (personagem.name or "Desconhecido") .. "\n\n" .. txt .. "\n\n========================================\n\n";
     else
         return "!! ERRO AO CARREGAR A FICHA !!";
     end
 end
 
 local function encontrarPersonagensNoDiretorio(diretorio, personagensEncontrados)
-    logs = diretorio.children;
+    local logs = diretorio.children;
     for _, filho in ipairs(logs) do
         if filho.tipo == "personagem" then
             table.insert(personagensEncontrados, filho);
@@ -72,20 +73,20 @@ local function selectDirectory(nomeDiretorioEscolhido, diretorios)
     -- 4. Varrer o diretório selecionado em busca de todos os personagens.
     local todosOsPersonagens = {};
     encontrarPersonagensNoDiretorio(diretorioEscolhido, todosOsPersonagens);
-    Log.i("a", "todosOsPersonagens".. #todosOsPersonagens);
-    
+    Log.i("a", "todosOsPersonagens" .. #todosOsPersonagens);
+
     if #todosOsPersonagens == 0 then
         showMessage("Nenhum personagem encontrado no diretório '" .. nomeDiretorioEscolhido .. "'.");
         return;
     end
 
     local textoCompleto = "Exportação do diretório: " .. nomeDiretorioEscolhido .. "\n\n";
-    
+
 
     -- 5 & 6. Carregar a ficha de cada personagem, ler o texto e armazenar.
     for _, personagem in ipairs(todosOsPersonagens) do
         local a = loadPersonagem(personagem);
-        textoCompleto = textoCompleto ..a;
+        textoCompleto = textoCompleto .. a;
     end
 
     -- 7. Exportar o arquivo final.
@@ -94,6 +95,47 @@ local function selectDirectory(nomeDiretorioEscolhido, diretorios)
     stream.position = 0;
 
     Dialogs.saveFile("Salvar Exportação do Diretório", stream, nomeDiretorioEscolhido .. ".txt", "text/plain");
+end
+
+
+
+local function criarNodos(node, biblioteca)
+    local filhos = biblioteca.children or {};
+    for _, filho in ipairs(filhos) do
+        if filho.tipo == "diretorio" then
+            local nodoFilho = NDB.createChildNode(node, "dir");
+            nodoFilho.nome = filho.name or "Diretório sem nome";
+            criarNodos(nodoFilho, filho);
+        elseif filho.tipo == "personagem" then
+            Log.i("Criando nodo para personagem: " .. (filho.name or "Desconhecido"));
+            local nodoFilho = NDB.createChildNode(node, "file");
+            nodoFilho.nome = filho.name or "Diretório sem nome";
+            local filhopromise = filho:asyncOpenNDB();
+            local sucesso, personagem = pawait(filhopromise);
+            nodoFilho.ficha = personagem;
+
+        end
+    end
+end
+
+function M.exportarxml(mesa)
+    local biblioteca = mesa.biblioteca;
+    local bibliotecapromise = NDB.newMemNodeDatabase();
+    local node = await(bibliotecapromise);
+    if not biblioteca then
+        showMessage("A biblioteca da mesa não foi encontrada.");
+        return;
+    end
+    if not node then
+        showMessage("Erro ao criar o banco de dados temporário.");
+        return;
+    end
+    criarNodos(node, biblioteca);
+    local xmlCompleto = NDB.exportXML(node);
+    local stream = Utils.newMemoryStream();
+    stream:writeBinary("utf8", xmlCompleto);
+    stream.position = 0;
+    Dialogs.saveFile("Salvar Personagem XML", stream, mesa.nome .. ".xml", "text/plain");
 end
 
 function M.iniciarExportacao(mesa)
