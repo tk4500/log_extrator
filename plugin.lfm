@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form formType="tablesDock" dataType="com.tkplayer.extractor" name="frmExportadorDePastas" title="Exportador de Pastas" width="300" height="120">
+    
+    <!-- 
+        Carrega nosso arquivo de lógica. O nome da variável (exportador_logic)
+        pode ser qualquer um, mas é uma boa prática usar o nome do arquivo.
+    -->
+    <script>
+        exportador_logic = require("exporter.lua");
+    </script>
+
+    <layout align="client" margins="{top=10, bottom=10, left=10, right=10}">
+        <label align="top" text="Este plugin exporta o conteúdo de todos os arquivos de uma pasta do seu FireDrive para um único arquivo .txt." autoSize="true" wordWrap="true" />
+        
+        <!-- 
+            O onClick agora chama a função que está dentro do nosso módulo de lógica.
+        -->
+        <button align="bottom" text="Selecionar Pasta e Exportar" onClick="exportador_logic.iniciarExportacao(Firecast.getMesaDe(sheet))" height="40" />
+    </layout>
+</form>

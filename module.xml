@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module sdkVersion="3.7b">
+    <id>com.tkplayer.LogExtractor</id>
+    <version>1.0</version>
+    <info lang="pt-BR">
+    <name>Log Extractor</name>
+        <description>Extrai logs de fichas e salva em um arquivo de texto.</description>
+        <author>tkplayer</author>
+        <site>https://github.com/tk4500</site>
+        <contact>https://www.linkedin.com/in/tarcisio-bogo/</contact>
+    </info>
+</module>
