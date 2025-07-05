@@ -3,26 +3,47 @@ require("utils.lua");
 require("log.lua");
 -- Módulo de lógica para o exportador de diretórios da biblioteca
 local M = {}
+
+local function getTextFromNode(ps)
+    if not ps then
+        return ""
+    end
+    local txt = ""
+    for _, p in ipairs(ps) do
+        local es = NDB.getChildNodes(p)
+        for _, e in ipairs(es) do
+            if e.text ~= nil then
+                txt = txt .. e.text;
+            end
+        end
+        txt = txt .. "\n";
+    end
+    if txt == "" then
+        return nil
+    end
+    return txt;
+end
 -- Função recursiva para encontrar todos os personagens dentro de um diretório e seus subdiretórios
 local function loadPersonagem(personagem)
     local promise = personagem:asyncOpenNDB();
-    local ficha = await(promise);
-    if ficha then
-        local ps = NDB.getChildNodes(ficha.txt);
-        local txt = "";
-        for _, p in ipairs(ps) do
-            local es = NDB.getChildNodes(p)
-            for _, e in ipairs(es) do
-                if e.text ~= nil then
-                    txt = txt .. e.text;
-                end
+    local node = await(promise);
+    if node.abas then
+        local abas = NDB.getChildNodes(node.abas);
+        local final = ""
+        for _, aba in ipairs(abas) do
+            local nome = aba.nome_aba
+            local ps = NDB.getChildNodes(aba.txt);
+            local txt = getTextFromNode(ps);
+            if txt and txt ~= "" then
+                final = final .. "\n\n" .. nome .. ":\n" .. txt;
             end
-            txt = txt .. "\n";
         end
-        return "Log: " ..
-            (personagem.name or "Desconhecido") .. "\n\n" .. txt .. "\n\n========================================\n\n";
+        return  final ;
+    elseif node.txt then
+        local ps = NDB.getChildNodes(node.txt);
+        return getTextFromNode(ps);
     else
-        return "!! ERRO AO CARREGAR A FICHA !!";
+        return "Nenhum texto encontrado no personagem";
     end
 end
 
@@ -85,7 +106,7 @@ local function selectDirectory(nomeDiretorioEscolhido, diretorios)
 
     -- 5 & 6. Carregar a ficha de cada personagem, ler o texto e armazenar.
     for _, personagem in ipairs(todosOsPersonagens) do
-        local a = loadPersonagem(personagem);
+        local a = (personagem.name or "Desconhecido") .. "\n\n" .. loadPersonagem(personagem).. "\n\n========================================\n\n";
         textoCompleto = textoCompleto .. a;
     end
 
@@ -113,7 +134,6 @@ local function criarNodos(node, biblioteca)
             local filhopromise = filho:asyncOpenNDB();
             local sucesso, personagem = pawait(filhopromise);
             nodoFilho.ficha = personagem;
-
         end
     end
 end
